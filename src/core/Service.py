@@ -1,10 +1,9 @@
 import time
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from qgis.PyQt.QtCore import QObject, pyqtSignal
 
-from ..sub.capabilities_cache import (load_capabilities_cache,
-                                      save_capabilities_cache)
+from ..sub.capabilities_cache import load_capabilities_cache, save_capabilities_cache
 from .Layer import Layer
 from .layer_hierarchy import LayerGroup
 
@@ -124,7 +123,9 @@ class GrdService(QObject):
     def _getRemoteCapabilities(self) -> Dict:
         raise NotImplementedError
 
-    def _setupLayers(self, available_layers, export_conf=True, layer_structure=None) -> None:
+    def _setupLayers(
+        self, available_layers, export_conf=True, layer_structure=None
+    ) -> None:
         """
         Setup the layers of the service, based on the available layers.
 
@@ -136,15 +137,23 @@ class GrdService(QObject):
 
         lrs = available_layers if available_layers else []
 
-        self.layers = [
-            Layer(
-                idx=i,
-                **layer,
-                data_model=self._layerDataModel(layer),
-                geometry_type=self._layerGeometryType(layer),
+        self.layers = []
+        for i, layer in enumerate(lrs):
+            layer_payload = dict(layer)
+
+            # Avoid passing duplicate geometry-related kwargs from cached payloads.
+            geometry_type = self._layerGeometryType(layer_payload)
+            layer_payload.pop("geometry_type", None)
+            layer_payload.pop("geometryType", None)
+
+            self.layers.append(
+                Layer(
+                    idx=i,
+                    **layer_payload,
+                    data_model=self._layerDataModel(layer_payload),
+                    geometry_type=geometry_type,
+                )
             )
-            for i, layer in enumerate(lrs)
-        ]
 
         # Always refresh hierarchy state, so stale cached/grouped structures
         # cannot leak across service type changes or fetch cycles.
