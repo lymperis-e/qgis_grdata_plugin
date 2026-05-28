@@ -9,15 +9,15 @@ server=False
 experimental=False
 hasProcessingProvider=no
 tags=python, greek, gov.gr, epoleodomia, poleodomia, ypen, geodata, gov, data
-version=3.0.2
+version=3.0.21
 author=Lymperis Efstathios
 email=geo.elymperis@gmail.com
 tracker=https://github.com/lymperis-e/qgis_grdata_plugin/issues
 repository=https://github.com/lymperis-e/qgis_grdata_plugin
-changelog=Fix slow loading, improve UX, add layers to native QGIS datasource browser, use grouped/nested services & layers
+changelog=Service lifecycle refresh: services are instantiated from local services.json with stable IDs, new services are appended from remote catalog updates, capabilities/layers are lazy-fetched and cached per service in .cache/capabilities, with manual refresh and automatic weekly re-fetch.
 # plugin_dependencies=
-description=Simple & centralised access to open geospatial datasets for Greece, provided by official government agencies and institutions. This plugin provides catalog search and direct layer loading functions for a variety of official greek data sources.
-about=Easy and quick access to open geospatial data for Greece. Refer <a href="https://www.elymperis.com/greekdata-qgis">here</a> for more information. Originally developed for <a href="https://www.geomeletitiki.gr">Geomeletitiki Consulting Engineers</a> by <a href="https://gr.linkedin.com/in/efstathios-lymperis-975702188">Efstathios Lymperis</a>, Geoscientist & Geospatial Software Engineer.<br /> <br /> Version 2.0 is a complete re-write and features a new interface, along with some other features. You can read more <a href="https://www.elymperis.com/greekdata-qgis">here</a>. The main change, is that fetched layers are now cached in a local settings.json file, so that they can be searched through and accessed easily. They then get updated every 7 days. Since the change is quite significant, the version has been bumped to 2.0.0, and your feedback is more than welcome.
+description=Simple & centralised access to open geospatial datasets for Greece, provided by official government agencies and institutions. Services are loaded from local configuration, fetched on demand, and their capabilities/layers are cached for fast browsing and direct layer loading.
+about=Easy and quick access to open geospatial data for Greece. Refer <a href="https://www.elymperis.com/greekdata-qgis">here</a> for more information. Originally developed for <a href="https://www.geomeletitiki.gr">Geomeletitiki Consulting Engineers</a> by <a href="https://gr.linkedin.com/in/efstathios-lymperis-975702188">Efstathios Lymperis</a>, Geoscientist & Geospatial Software Engineer.<br /> <br /> Service lifecycle summary: service definitions are read from assets/settings/services.json and instantiated by type (ESRI/OGC). On startup, the plugin checks the remote stable catalog and appends only new services (by URL) to local configuration, then reloads services. Capabilities are fetched lazily when a service is opened, saved per service under .cache/capabilities/<service_id>.json, and reused on next runs. Cached data can be manually refreshed from the UI and is automatically refreshed when older than 7 days.
 
 
 
