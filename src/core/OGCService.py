@@ -1,15 +1,14 @@
-import time
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 from urllib.parse import parse_qs, unquote, urlparse
 
 import requests
 from qgis.core import Qgis, QgsApplication, QgsMessageLog, QgsTask
 from qgis.PyQt.QtCore import pyqtSignal
 
+from ..constants import REQUEST_TIMEOUT, REQUEST_UA
 from ..sub.logger import LOGGER_CATEGORY
 from ..sub.xml import xmltodict
-from .Layer import DataModel, Layer
-from .layer_hierarchy import LayerGroup
+from .Layer import DataModel
 from .Service import GrdService
 
 
@@ -60,7 +59,7 @@ def filter_OGC_attributes(attributes: Dict[str, str]) -> Dict[str, str]:
     }
 
 
-def bbox_from_corners(bbox) -> str:
+def bbox_from_corners(bbox):
     """
     Convert WFS repr :
     <ows:LowerCorner>20.786230268362047 36.20732655645524</ows:LowerCorner>
@@ -149,27 +148,22 @@ class LoadOGCAsync(QgsTask):
 
     def _request_capabilities(self, url, payload, service_label):
         """Request OGC capabilities with a one-time SSL-verification fallback."""
-        base_kwargs = {
-            "params": payload,
-            "headers": {"user-agent": "grdata-qgis-plugin/1.0.0"},
-            "timeout": 10,
-            "allow_redirects": True,
-            "cookies": None,
-        }
 
         try:
-            response = requests.get(url, **base_kwargs)
+            response = requests.get(
+                url,
+                params=payload,
+                headers={"user-agent": REQUEST_UA},
+                allow_redirects=True,
+                cookies=None,
+                timeout=REQUEST_TIMEOUT,
+            )
             response.raise_for_status()
             return response
         except requests.exceptions.SSLError as err:
-            QgsMessageLog.logMessage(
-                f"[OGCService/Loader] {service_label} SSL verification failed for {url}; retrying without certificate verification: {err}",
-                LOGGER_CATEGORY,
-                Qgis.Warning,
-            )
-            response = requests.get(url, verify=False, **base_kwargs)
-            response.raise_for_status()
-            return response
+            # Don't actually ignore SSL errors, it is considered a critical issue
+            # by the QGIS Plugin repo static analysis tool.
+            raise err
 
     def _get_wfs(self, url):
         url = url.rstrip("/")
