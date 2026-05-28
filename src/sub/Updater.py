@@ -5,6 +5,7 @@ import requests
 from qgis.core import Qgis, QgsApplication, QgsMessageLog, QgsTask
 from qgis.PyQt.QtCore import pyqtSignal
 
+from ..constants import REQUEST_TIMEOUT, REQUEST_UA
 from .logger import LOGGER_CATEGORY
 
 CONFIG_FILE = join(dirname(dirname(__file__)), "assets", "settings", "services.json")
@@ -22,7 +23,6 @@ class FetchFromGithub(QgsTask):
     fetched = pyqtSignal(list)
     github_url = "https://raw.githubusercontent.com/lymperis-e/Greek-Data-QGIS-Plugin/dev/data/services.stable.json"
 
-
     def __init__(self):
         super().__init__(
             f"Updating services from {self.github_url} ", QgsTask.CanCancel
@@ -38,8 +38,8 @@ class FetchFromGithub(QgsTask):
         try:
             response = requests.get(
                 self.github_url,
-                headers={"user-agent": "grdata-qgis-plugin/1.0.0"},
-                timeout=10,
+                headers={"user-agent": REQUEST_UA},
+                timeout=REQUEST_TIMEOUT,
                 allow_redirects=True,
                 cookies=None,
             )

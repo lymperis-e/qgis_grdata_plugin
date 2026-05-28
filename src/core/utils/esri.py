@@ -1,6 +1,6 @@
-import json
-
 import requests
+
+from ...constants import REQUEST_TIMEOUT, REQUEST_UA
 
 
 def query_esri_server(url, parent_url=None, parent_type=None):
@@ -9,7 +9,8 @@ def query_esri_server(url, parent_url=None, parent_type=None):
     response = requests.get(
         url,
         params=payload,
-        headers={"user-agent": "grdata-qgis-plugin/1.0.0"},
+        headers={"user-agent": REQUEST_UA},
+        timeout=REQUEST_TIMEOUT,
     ).json()
 
     # Initialize the dictionary for this level of the directory

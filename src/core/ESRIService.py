@@ -1,12 +1,13 @@
-from typing import Dict, List, Union
+from typing import Dict, List
 
 import requests
 from qgis.core import Qgis, QgsApplication, QgsMessageLog, QgsTask
 from qgis.PyQt.QtCore import pyqtSignal
 
+from ..constants import REQUEST_TIMEOUT, REQUEST_UA
 from ..sub.logger import LOGGER_CATEGORY
 from .Layer import Layer
-from .layer_hierarchy import LayerGroup, build_hierarchy_from_flat_with_paths
+from .layer_hierarchy import build_hierarchy_from_flat_with_paths
 from .Service import GrdService
 
 
@@ -81,8 +82,8 @@ class LoadEsriAsync(QgsTask):
         response = requests.get(
             url,
             params=payload,
-            headers={"user-agent": "grdata-qgis-plugin/1.0.0"},
-            timeout=10,
+            headers={"user-agent": REQUEST_UA},
+            timeout=REQUEST_TIMEOUT,
             allow_redirects=True,
             cookies=None,
         ).json()
@@ -93,7 +94,9 @@ class LoadEsriAsync(QgsTask):
 
         return response
 
-    def query_esri_server(self, url, parent_type=None, path_prefix="") -> Dict[str, Dict[str, str]]:
+    def query_esri_server(
+        self, url, parent_type=None, path_prefix=""
+    ) -> Dict[str, Dict[str, str]] | None:
         """
         Recursively query ESRI server.
 
@@ -127,9 +130,13 @@ class LoadEsriAsync(QgsTask):
             service_name = service["name"].split("/")[-1]
             service_type = service["type"]
             service_url = f"{url}/{service_name}/{service_type}"
-            service_path = f"{path_prefix}/{service_name}" if path_prefix else service_name
+            service_path = (
+                f"{path_prefix}/{service_name}" if path_prefix else service_name
+            )
 
-            _service_layers = self.query_esri_server(service_url, service_type, service_path)
+            _service_layers = self.query_esri_server(
+                service_url, service_type, service_path
+            )
             if not _service_layers:
                 continue
             service_layers.update(_service_layers)
@@ -192,7 +199,7 @@ class LoadEsriAsync(QgsTask):
             }
 
             self.layers.append(layer_dict)
-            
+
             # Track the path for this layer to rebuild hierarchy later
             layer_path = f"{path_prefix}/{layer_name}" if path_prefix else layer_name
             self.layer_paths[layer_id] = layer_path
@@ -297,7 +304,9 @@ class ESRIService(GrdService):
                     )
                     layer_objs.append(layer)
 
-                hierarchy = build_hierarchy_from_flat_with_paths(layer_objs, layer_paths)
+                hierarchy = build_hierarchy_from_flat_with_paths(
+                    layer_objs, layer_paths
+                )
 
         # Call _setupLayers with both flat layers and hierarchy
         self._setupLayers(layers, export_conf=True, layer_structure=hierarchy)

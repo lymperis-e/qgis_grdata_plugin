@@ -7,6 +7,7 @@ import requests
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QTreeWidgetItem
 
+from ..constants import REQUEST_UA
 from .cache import ICONS_CACHE_DIR, ensure_cache_directories
 
 plugin_logo = join(dirname(dirname(__file__)), "assets", "img", "icon.png")
@@ -46,7 +47,13 @@ def cache_service_icon(service):
         return cache_path
 
     try:
-        response = requests.get(service.icon, timeout=4)
+        response = requests.get(
+            service.icon,
+            timeout=4,
+            headers={
+                "user-agent": REQUEST_UA,
+            },
+        )
         if response.status_code != 200:
             return None
 

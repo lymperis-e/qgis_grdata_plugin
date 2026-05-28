@@ -5,8 +5,7 @@ from typing import Dict, List, Union
 
 import requests
 
-from .ESRIService import ESRIService
-from .OGCService import OGCService
+from ..constants import REQUEST_TIMEOUT, REQUEST_UA
 from .Service import GrdService, ServiceNotExists
 from .ServiceFactory import ServiceFactory
 
@@ -69,7 +68,9 @@ class ServiceManager:
     @staticmethod
     def _generate_service_id(service: Dict[str, str]) -> str:
         stable_key = f"{service.get('type', '')}|{service.get('url', '')}"
-        digest = hashlib.sha1(stable_key.encode("utf-8")).hexdigest()[:16]
+        digest = hashlib.sha1(
+            stable_key.encode("utf-8"), usedforsecurity=False
+        ).hexdigest()[:16]
         return f"svc_{digest}"
 
     def __load_remote_services(self) -> Dict[str, str]:
@@ -78,8 +79,8 @@ class ServiceManager:
         """
         response = requests.get(
             url=self.remote_repo,
-            headers={"user-agent": "grdata-qgis-plugin/2.0"},
-            timeout=10,
+            headers={"user-agent": REQUEST_UA},
+            timeout=REQUEST_TIMEOUT,
         )
 
         # try:
